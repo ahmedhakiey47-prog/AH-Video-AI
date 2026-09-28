@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AH Video AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07101d;color:#fff;font-family:Arial,Tahoma,sans-serif}
+main{max-width:900px;margin:auto;padding:40px 18px}.logo{font-size:27px;font-weight:800;margin-bottom:35px}.logo b{color:#a855f7}
+.card{background:#0d1929;border:1px solid #293b54;border-radius:22px;padding:22px}
+h1{font-size:38px;margin:0 0 10px}p{color:#aeb9c8;line-height:1.8}
+textarea{width:100%;height:170px;background:#081321;border:1px solid #34445c;border-radius:15px;color:white;padding:16px;font-size:16px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}label{display:block;color:#aeb9c8;font-size:13px;margin-bottom:6px}
+select{width:100%;background:#0a1524;color:#fff;border:1px solid #34445c;padding:13px;border-radius:12px}
+button{width:100%;padding:16px;border:0;border-radius:14px;color:#fff;font-size:17px;font-weight:bold;background:linear-gradient(90deg,#1685ff,#c02cff);cursor:pointer}
+#status{margin-top:15px;padding:12px;border-radius:12px;background:#101f33;display:none;color:#cbd8e8}
+video{width:100%;margin-top:20px;border-radius:18px;display:none;background:#000}
+@media(max-width:650px){h1{font-size:30px}.row{grid-template-columns:1fr}}
+</style></head>
+<body><main>
+<div class="logo">▶ AH <b>Video AI</b></div>
+<div class="card">
+<h1>حوّل فكرتك إلى فيديو</h1>
+<p>اكتب وصف المشهد، اختر المدة والمقاس، واضغط إنشاء.</p>
+<textarea id="prompt" placeholder="مثال: شاب يمشي في شوارع القاهرة ليلًا، إضاءة نيون، تصوير سينمائي وحركة كاميرا احترافية"></textarea>
+<div class="row">
+<div><label>المدة</label><select id="duration"><option value="5">5 ثواني</option><option value="10">10 ثواني</option><option value="15">15 ثانية</option></select></div>
+<div><label>المقاس</label><select id="ratio"><option value="9:16">عمودي 9:16</option><option value="16:9">أفقي 16:9</option><option value="1:1">مربع 1:1</option></select></div>
+<div><label>الجودة</label><select id="resolution"><option value="720p">720p</option><option value="1080p">1080p</option><option value="4k">4K</option></select></div>
+</div>
+<button id="go">✨ إنشاء الفيديو</button>
+<div id="status"></div>
+<video id="video" controls playsinline></video>
+</div></main>
+<script>
+const go=document.getElementById("go"), status=document.getElementById("status"), video=document.getElementById("video");
+go.onclick=async()=>{
+ const prompt=document.getElementById("prompt").value.trim();
+ if(!prompt){status.style.display="block";status.textContent="اكتب وصف الفيديو أولاً.";return}
+ go.disabled=true;status.style.display="block";status.textContent="جاري توليد الفيديو... قد يستغرق بعض الوقت.";
+ video.style.display="none";
+ try{
+   const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt,duration:Number(document.getElementById("duration").value),
+      aspect_ratio:document.getElementById("ratio").value,resolution:document.getElementById("resolution").value,generate_audio:true})});
+   const data=await r.json();
+   if(!r.ok) throw new Error(data.error||"فشل الطلب");
+   const url=typeof data.video==="string"?data.video:(data.video?.url||data.result?.video?.url);
+   if(url){video.src=url;video.style.display="block";status.textContent="تم إنشاء الفيديو.";video.load();}
+   else status.textContent="تمت العملية، لكن رابط الفيديو لم يصل في الاستجابة.";
+ }catch(e){status.textContent=e.message}finally{go.disabled=false}
+};
+</script></body></html>

@@ -1,0 +1,12 @@
+{
+  "name": "ah-video-ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"start": "node server.js"},
+  "dependencies": {
+    "@higgsfield/client": "latest",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0"
+  }
+}
